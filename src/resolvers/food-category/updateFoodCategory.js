@@ -1,7 +1,7 @@
 import { foodCategoryModel } from "../../model/foodCategory-model.js";
 import jwt from "jsonwebtoken";
 
-export const deleteCategory = async (req, res) => {
+export const updateFoodCategory = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -22,19 +22,25 @@ export const deleteCategory = async (req, res) => {
       return res.status(403).json({ message: "Access denied. Admins only." });
     }
 
-    const deleteId = req.params.foodCategoryId;
-    const deletedCategory = await foodCategoryModel.findByIdAndDelete(deleteId);
+    const foodCatId = req.params.foodCategoryId;
+    const { categoryName } = req.body;
 
-    if (!deletedCategory) {
+    const updatedCat = await foodCategoryModel.findByIdAndUpdate(
+      foodCatId,
+      { categoryName },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCat) {
       return res.status(404).json({ message: "Category not found." });
     }
 
     res.status(200).json({
-      message: "Category deleted successfully (Admin access).",
-      id: deleteId,
+      message: "Category updated successfully (Admin access).",
+      category: updatedCat,
     });
   } catch (error) {
-    console.error("Error deleting category:", error);
-    res.status(500).json({ message: "Server error while deleting category." });
+    console.error("Error updating category:", error);
+    res.status(500).json({ message: "Server error while updating category." });
   }
 };

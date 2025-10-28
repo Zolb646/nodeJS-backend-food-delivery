@@ -1,7 +1,7 @@
-import { UserModel } from "../../model/user-model.js";
+import { foodModel } from "../../model/food-model.js";
 import jwt from "jsonwebtoken";
 
-export const getUsers = async (req, res) => {
+export const updateFoodDetails = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -22,23 +22,22 @@ export const getUsers = async (req, res) => {
       return res.status(403).json({ message: "Access denied. Admins only." });
     }
 
-    const dbUsers = await UserModel.find().populate({
-      path: "orderedFoods",
-      populate: {
-        path: "foodOrderItems",
-        populate: {
-          path: "food",
-          select: "foodName",
-        },
-      },
+    const foodId = req.params.foodId;
+    const updatedFood = await foodModel.findByIdAndUpdate(foodId, req.body, {
+      new: true,
+      runValidators: true,
     });
 
+    if (!updatedFood) {
+      return res.status(404).json({ message: "Food not found." });
+    }
+
     res.status(200).json({
-      message: "Users fetched successfully (Admin access).",
-      users: dbUsers,
+      message: "Food updated successfully (Admin access).",
+      food: updatedFood,
     });
   } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ message: "Server error while fetching users." });
+    console.error("Error updating food:", error);
+    res.status(500).json({ message: "Server error while updating food." });
   }
 };

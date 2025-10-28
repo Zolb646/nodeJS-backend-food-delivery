@@ -1,7 +1,7 @@
 import { foodOrderModel } from "../../model/foodOrder-model.js";
 import jwt from "jsonwebtoken";
 
-export const deleteFoodOrder = async (req, res) => {
+export const updateFoodOrder = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -18,9 +18,10 @@ export const deleteFoodOrder = async (req, res) => {
       return res.status(403).json({ message: "Invalid or expired token." });
     }
 
-    const deleteId = req.params.foodOrderId;
+    const foodOrderId = req.params.foodOrderId;
+    const orderUpdate = req.body;
 
-    const order = await foodOrderModel.findById(deleteId);
+    const order = await foodOrderModel.findById(foodOrderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
     }
@@ -30,18 +31,22 @@ export const deleteFoodOrder = async (req, res) => {
       verified.role.toLowerCase() !== "admin"
     ) {
       return res.status(403).json({
-        message: "Access denied. You can only delete your own orders.",
+        message: "Access denied. You can only update your own orders.",
       });
     }
 
-    const deletedOrder = await foodOrderModel.findByIdAndDelete(deleteId);
+    const updatedOrder = await foodOrderModel.findByIdAndUpdate(
+      foodOrderId,
+      orderUpdate,
+      { new: true, runValidators: true }
+    );
 
     res.status(200).json({
-      message: "Order deleted successfully.",
-      order: deletedOrder,
+      message: "Food order updated successfully.",
+      order: updatedOrder,
     });
   } catch (error) {
-    console.error("Error deleting order:", error);
-    res.status(500).json({ message: "Server error while deleting order." });
+    console.error("Error updating order:", error);
+    res.status(500).json({ message: "Server error while updating order." });
   }
 };
