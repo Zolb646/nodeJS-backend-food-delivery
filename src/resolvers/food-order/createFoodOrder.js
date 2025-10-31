@@ -18,12 +18,18 @@ export const createFoodOrder = async (req, res) => {
       return res.status(403).json({ message: "Invalid or expired token." });
     }
 
-    const { totalPrice, foodOrderItems, status } = req.body;
+    const { foodOrderItems, status } = req.body;
+
+    let totalPrice = 0;
+    for (const item of foodOrderItems) {
+      const food = await foodModel.findById(item.food);
+      if (food) totalPrice += food.price * item.quantity;
+    }
 
     const newOrder = await foodOrderModel.create({
       user: verified.id,
-      totalPrice,
       foodOrderItems,
+      totalPrice,
       status: status || "PENDING",
     });
 
